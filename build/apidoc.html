@@ -1,0 +1,145 @@
+<div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a
+
+        href="https://github.com/xavi-/node-simple-rate-limiter"
+
+    >simple-rate-limiter (v0.2.3)</a>
+</h1>
+<h4>A simple way to rate limit how often a function is executed.</h4>
+<div class="apidocSectionDiv"><a
+    href="#apidoc.tableOfContents"
+    id="apidoc.tableOfContents"
+><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.simple-rate-limiter">module simple-rate-limiter</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.simple-rate-limiter.simple-rate-limiter">
+            function <span class="apidocSignatureSpan"></span>simple-rate-limiter
+            <span class="apidocSignatureSpan">(fn)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.simple-rate-limiter" id="apidoc.module.simple-rate-limiter">module simple-rate-limiter</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.simple-rate-limiter.simple-rate-limiter" id="apidoc.element.simple-rate-limiter.simple-rate-limiter">
+        function <span class="apidocSignatureSpan"></span>simple-rate-limiter
+        <span class="apidocSignatureSpan">(fn)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function limit(fn) {
+	var _to = 1, _per = -1, _fuzz = 0, _evenly = false;
+	var pastExecs = [], queue = [], timer;
+
+	var pump = function() {
+		var now = Date.now();
+
+		pastExecs = pastExecs.filter(function(time) { return (now - time &#x3c; _per); });
+
+		while(pastExecs.length &#x3c; _to &#x26;&#x26; queue.length &#x3e; 0) {
+			pastExecs.push(now);
+
+			var tmp = queue.shift();
+			var rtn = fn.apply(null, tmp.args);
+			tmp.emitter.emit(&#x22;limiter-exec&#x22;, rtn);
+
+			if(rtn &#x26;&#x26; rtn.emit) { reEmit(rtn, tmp.emitter); }
+
+			if(_evenly) { break; } // Ensures only one function is executed every pump
+		}
+
+		if(pastExecs.length &#x3c;= 0 || queue.length &#x3c;= 0) { timer = null; }
+		else if(_per &#x3e; -1) {
+			var delay = (_evenly ? _per / _to : _per - (now - pastExecs[0]));
+			delay += (delay * _fuzz * Math.random()) | 0;
+			timer = setTimeout(pump, delay);
+		}
+	};
+
+	var limiter = function() {
+		var emitter = new EventEmitter();
+
+		queue.push({ emitter: emitter, args: slice.call(arguments, 0) });
+
+		if(!timer) { timer = setTimeout(pump, 0); }
+
+		return emitter;
+	};
+
+	limiter.to = function(count) { _to = count || 1; return limiter; };
+	limiter.per = function(time) { _per = time || -1; return limiter; };
+	limiter.evenly = function(evenly) { _evenly = (evenly == null) || evenly; return limiter; };
+	limiter.withFuzz = function(fuzz) { _fuzz = fuzz || 0.1; return limiter; };
+
+	return limiter;
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
